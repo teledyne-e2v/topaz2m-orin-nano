@@ -289,7 +289,8 @@ file, including `FDT /boot/dtb/<dtb>` under `LABEL primary`:
 
 ## Copy and run the module
 
-In case of using a driver as a module, here are the instructions to copy and use it. Note that is necessary to have the kernel image and the 
+In case of using a driver as a module, here are the instructions to copy and use it. Note that is necessary to flash the board with proper image before.
+
 copy compiled module:
 
 	scp $KERNEL_MODULES_OUT/lib/modules/5.10.120-tegra/kernel/drivers/media/i2c/topaz2m.ko teledyne@192.168.255.59:/home/teledyne/.
@@ -310,7 +311,7 @@ to unload the module:
 
 	sudo rmmod topaz2m
 
-Atlenatively, the file can be moved to ```/lib/modules```
+Atlenatively, the file can be moved to `/lib/modules`
 
 	sudo mv /tmp/topaz2m.ko /lib/modules/5.10.120-tegra/extra/.
 	sudo depmod -a
@@ -330,3 +331,104 @@ After power, the driver insertion can be checked:
 Other informations can be printing using the command:
 
 	modinfo topaz2m
+
+# Test the driver
+
+Verify the driver was loaded correctly:
+
+	sudo dmesg | grep topaz2m
+
+The output should look like this:
+
+```
+[sudo] password for teledyne: 
+[   19.769652] topaz2m 9-0010: tegracam v2.0.6 sensor driver: topaz2m
+[   19.793060] topaz2m 9-0010: Topaz sensor found
+[   19.793072] topaz2m 9-0010: Topaz driver version: 0.1.0
+[   19.794326] topaz2m 9-0010: Topaz sensor type: monochrome
+[   19.794717] topaz2m 9-0010: Topaz sensor resolution: 2M
+[   19.802874] topaz2m 9-0010: Topaz sensor module option: Fixed-Focus
+[   19.805160] topaz2m 9-0010: Topaz temperature sensor support enabled.
+[   19.816084] topaz2m 9-0010: topaz2m_set_color_gain_b: Cannot set color gain b, color support is disabled
+[   19.816123] topaz2m 9-0010: topaz2m_set_color_gain_g: Cannot set color gain g, color support is disabled
+[   19.816139] topaz2m 9-0010: topaz2m_set_color_gain_r: Cannot set color gain r, color support is disabled
+[   19.816154] topaz2m 9-0010: topaz2m_set_color_offset_b: Cannot set color offset b, color support is disabled
+[   19.816170] topaz2m 9-0010: topaz2m_set_color_offset_g: Cannot set color offset g, color support is disabled
+[   19.816183] topaz2m 9-0010: topaz2m_set_color_offset_r: Cannot set color offset r, color support is disabled
+[   19.817536] topaz2m 9-0010: topaz2m_set_focus_dac: Cannot set focus dac, tlens support is disabled
+[   19.818063] tegra-camrtc-capture-vi tegra-capture-vi: subdev topaz2m 9-0010 bound
+[   19.822232] topaz2m 9-0010: detected topaz2m sensor
+[   19.822790] topaz2m 10-0010: tegracam v2.0.6 sensor driver: topaz2m
+[   19.846666] topaz2m_read_reg: -121
+[   19.850097] topaz2m 10-0010: topaz2m_board_setup: error during i2c read probe (-121)
+[   19.864008] topaz2m 10-0010: board setup failed
+[   19.868894] topaz2m: probe of 10-0010 failed with error -121
+```
+
+The device should be created:
+
+	ls /dev/video*
+
+Install v4l utils:
+
+	sudo apt install v4l-utils
+
+Check the control are well loaded
+	
+	v4l2-ctl -l
+
+The output should be like this:
+
+```
+Camera Controls
+
+                     group_hold 0x009a2003 (bool)   : default=0 value=0 flags=execute-on-write
+                    sensor_mode 0x009a2008 (int64)  : min=0 max=12 step=1 default=0 value=2 flags=slider
+                           gain 0x009a2009 (int64)  : min=0 max=256 step=1 default=1 value=0 flags=slider
+                       exposure 0x009a200a (int64)  : min=4 max=200000 step=1 default=9180 value=4 flags=slider
+                     frame_rate 0x009a200b (int64)  : min=5000000 max=100000000 step=1000000 default=100000000 value=5000000 flags=slider
+           sensor_configuration 0x009a2032 (u32)    : min=0 max=4294967295 step=1 default=0 [22] flags=read-only, volatile, has-payload
+         sensor_mode_i2c_packet 0x009a2033 (u32)    : min=0 max=4294967295 step=1 default=0 [1026] flags=read-only, volatile, has-payload
+      sensor_control_i2c_packet 0x009a2034 (u32)    : min=0 max=4294967295 step=1 default=0 [1026] flags=read-only, volatile, has-payload
+                    bypass_mode 0x009a2064 (intmenu): min=0 max=1 default=0 value=0
+                override_enable 0x009a2065 (intmenu): min=0 max=1 default=0 value=0
+                   height_align 0x009a2066 (int)    : min=1 max=16 step=1 default=1 value=1
+                     size_align 0x009a2067 (intmenu): min=0 max=2 default=0 value=0
+               write_isp_format 0x009a2068 (int)    : min=1 max=1 step=1 default=1 value=1
+       sensor_signal_properties 0x009a2069 (u32)    : min=0 max=4294967295 step=1 default=0 [30][18] flags=read-only, has-payload
+        sensor_image_properties 0x009a206a (u32)    : min=0 max=4294967295 step=1 default=0 [30][16] flags=read-only, has-payload
+      sensor_control_properties 0x009a206b (u32)    : min=0 max=4294967295 step=1 default=0 [30][36] flags=read-only, has-payload
+              sensor_dv_timings 0x009a206c (u32)    : min=0 max=4294967295 step=1 default=0 [30][16] flags=read-only, has-payload
+               low_latency_mode 0x009a206d (bool)   : default=0 value=0
+               preferred_stride 0x009a206e (int)    : min=0 max=65535 step=1 default=0 value=0
+                    analog_gain 0x009a206f (int64)  : min=0 max=15 step=1 default=0 value=0 flags=slider
+                   digital_gain 0x009a2070 (int64)  : min=1 max=4096 step=1 default=256 value=256 flags=slider
+                   test_pattern 0x009a2071 (int64)  : min=0 max=13 step=1 default=0 value=0 flags=slider
+                           flip 0x009a2072 (int64)  : min=0 max=3 step=1 default=0 value=0 flags=slider
+                   color_gain_b 0x009a2073 (int64)  : min=0 max=1023 step=1 default=256 value=256 flags=slider
+                   color_gain_g 0x009a2074 (int64)  : min=0 max=1023 step=1 default=256 value=256 flags=slider
+                   color_gain_r 0x009a2075 (int64)  : min=0 max=1023 step=1 default=256 value=256 flags=slider
+                 color_offset_b 0x009a2076 (int)    : min=-128 max=127 step=1 default=0 value=0 flags=slider
+                 color_offset_g 0x009a2077 (int)    : min=-128 max=127 step=1 default=0 value=0 flags=slider
+                 color_offset_r 0x009a2078 (int)    : min=-128 max=127 step=1 default=0 value=0 flags=slider
+                 trigger_output 0x009a2079 (int64)  : min=0 max=9 step=1 default=0 value=0 flags=slider
+                 flash_delay_on 0x009a207a (int64)  : min=0 max=255 step=1 default=0 value=0 flags=slider
+                flash_delay_off 0x009a207b (int64)  : min=0 max=255 step=1 default=0 value=0 flags=slider
+                   image_offset 0x009a207c (int)    : min=-512 max=511 step=1 default=0 value=0 flags=slider
+              module_resolution 0x009a207d (int64)  : min=1 max=5 step=1 default=1 value=2 flags=read-only, volatile
+                  module_option 0x009a207e (int64)  : min=0 max=2 step=1 default=0 value=1 flags=read-only, volatile
+                       is_color 0x009a207f (int64)  : min=0 max=1 step=1 default=0 value=0 flags=read-only, volatile
+                  is_multifocus 0x009a2080 (int64)  : min=0 max=1 step=1 default=0 value=0 flags=read-only, volatile
+                write_focus_dac 0x009a2081 (int)    : min=-146 max=885 step=1 default=0 value=0 flags=slider
+                 read_focus_dac 0x009a2082 (int)    : min=-146 max=885 step=1 default=0 value=0 flags=read-only, volatile
+             module_temperature 0x009a2083 (int)    : min=-400000 max=1250000 step=1 default=0 value=251875 flags=read-only, volatile
+             sensor_temperature 0x009a2084 (int)    : min=-400000 max=1250000 step=1 default=0 value=235625 flags=read-only, volatile
+              temperature_range 0x009a2085 (int)    : min=0 max=1 step=1 default=0 value=0 flags=slider
+                   sensor_modes 0x009a2086 (int)    : min=0 max=30 step=1 default=30 value=12 flags=read-only
+```
+
+
+Test the video stream with:
+
+	v4l2-ctl -d /dev/video0 --set-fmt-video=width=1920,height=1080,pixelformat='GREY' --set-ctrl sensor_mode=2
+	gst-launch-1.0 v4l2src ! "video/x-raw,width=1920,height=1080,format=GRAY8" ! queue ! videoconvert ! queue ! xvimagesink sync=false
