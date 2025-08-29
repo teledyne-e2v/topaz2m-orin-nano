@@ -17,7 +17,8 @@ On the host machine Install the `Jetpack 5.1.2` using Nvidia SDK Manager (from N
     P3767-0005 module
     P3768-0000 carrier board
 
-Please install it in the following folder : `~/JetPack-5.1.2`
+Please install it in the following folder : `~/JetPack-5.1.2` and skip flashing step.
+
 
 Download sources:
 
