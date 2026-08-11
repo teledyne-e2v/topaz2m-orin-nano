@@ -438,3 +438,8 @@ If a second camera is connected, the command is:
 
 	v4l2-ctl -d /dev/video1 --set-fmt-video=width=1920,height=1080,pixelformat='GREY' --set-ctrl sensor_mode=2
 	gst-launch-1.0 v4l2src device=/dev/video1 ! "video/x-raw,width=1920,height=1080,format=GRAY8" ! queue ! videoconvert ! queue ! xvimagesink sync=false
+
+With color module, the following pipeline can be run but some ISP options must be modified:
+
+	v4l2-ctl -d /dev/video0 --set-fmt-video=width=1920,height=1080,pixelformat='RG10' --set-ctrl bypass_mode=0 --set-ctrl sensor_mode=0
+	gst-launch-1.0 nvarguscamerasrc sensor-mode=0 ! 'video/x-raw(memory:NVMM),width=1920,height=1080,framerate=65/1' ! nvvidconv ! ximagesink sync=false
